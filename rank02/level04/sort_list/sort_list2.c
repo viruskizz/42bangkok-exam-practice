@@ -17,50 +17,61 @@
 static void		lst_add_back(t_list *lst, t_list *new);
 static t_list	*lst_new(int data);
 static t_list	*lst_clone(t_list *lst);
-static void	lst_swap_data(t_list *lst1, t_list *lst2)
+static t_list	*lst_swap(t_list *slst, t_list *plst, t_list *lst1, t_list *lst2);
+void	print_list(t_list *lst);
 
 t_list	*sort_list(t_list *lst, int (*cmp)(int, int))
 {
 	t_list	*slist;
 	t_list	*ilist;
 	t_list	*jlist;
+	t_list	*plist;
 
 	slist = lst_clone(lst);
 	ilist = slist;
-	while (ilist->next)
+	plist = NULL;
+	while (ilist && ilist->next)
 	{
 		jlist = ilist->next;
 		while (jlist->next)
 		{
 			if (!cmp(ilist->data, jlist->data))
-				lst_swap_data(ilist, jlist);
+				slist = lst_swap(slist, plist, ilist, jlist);
 			jlist = jlist->next;
 		}
 		if (!jlist->next)
 		{
 			if (!cmp(ilist->data, jlist->data))
-				lst_swap_data(ilist, jlist);
+				slist = lst_swap(slist, plist, ilist, jlist);
 		}
+		plist = ilist;
 		ilist = ilist->next;
 	}
 	return (slist);
 }
 
-static void	lst_swap_data(t_list *lst1, t_list *lst2)
+static t_list	*lst_swap(t_list *slst, t_list *plst, t_list *lst1, t_list *lst2)
 {
-	int	tmp;
-
-	tmp = lst1->data;
-	lst1->data = lst2->data;
-	lst2->data = tmp;
-}
-
-static void lst_swap(t_list *lst, t_list *new)
-{
-	// i -> j -> k
-	// j -> i -> k
-	// h i j k
-
+	if (!plst)
+	{
+		// NULL
+		// i -> j -> k
+		// j -> i -> k
+		lst1->next = lst2->next;
+		lst2->next = lst1;
+		return (lst2);
+	}
+	else
+	{
+		// NOT NULL
+		// i -> j -> k
+		// i -> k -> j
+		lst1->next = lst2->next;
+		lst2->next = lst1;
+		plst->next = lst2;
+	}
+	return (slst);
+	
 }
 
 static void	lst_add_back(t_list *lst, t_list *new)

@@ -16,24 +16,28 @@
 #include "list.h"
 
 t_list	*lst_new(int data);
-t_list	lst_add_back(t_list *lst, t_list *new);
+void	lst_add_back(t_list *lst, t_list *new);
 void	print_list(t_list *lst);
 int		ascending(int a, int b);
 t_list	*sort_list(t_list* lst, int (*cmp)(int, int));
 
 int main(int argc, char *argv[])
 {
-	int nbs[] = {7, 5, 10, 4, 2};
+	int nbs[] = {4, 3, 5, 11, 10};
 	int i = 0;
 	int size = 5;
-	t_list *lst = lst_new(nbs[i++]);
+	t_list *lst;
+	t_list *slst;
+	
+	lst = lst_new(nbs[i++]);
 	while (i < size)
 	{
 		t_list *tmp = lst_new(nbs[i++]);
 		lst_add_back(lst, tmp);
 	}
+	printf("LISTS\n");
 	print_list(lst);
-	t_list *slst = sort_list(lst, ascending);
+	slst = sort_list(lst, ascending);
 	printf("SORTED\n");
 	print_list(slst);
 	return (0);
@@ -56,7 +60,7 @@ t_list    *lst_new(int data)
 	return (lst);
 }
 
-t_list lst_add_back(t_list *lst, t_list *new)
+void lst_add_back(t_list *lst, t_list *new)
 {
 	if (!lst)
 		lst = new;
