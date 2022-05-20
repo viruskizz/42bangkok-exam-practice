@@ -20,6 +20,7 @@ void	lst_add_back(t_list *lst, t_list *new);
 void	print_list(t_list *lst);
 int		ascending(int a, int b);
 t_list	*sort_list(t_list* lst, int (*cmp)(int, int));
+void	lst_free(t_list *lst);
 
 int main(int argc, char *argv[])
 {
@@ -40,6 +41,8 @@ int main(int argc, char *argv[])
 	slst = sort_list(lst, ascending);
 	printf("SORTED\n");
 	print_list(slst);
+	lst_free(lst);
+	lst_free(slst);
 	return (0);
 }
 
@@ -83,4 +86,16 @@ void    print_list(t_list *lst)
 		tmp = tmp->next;
 	}
 	printf("%d\n", tmp->data);
+}
+
+void	lst_free(t_list *lst)
+{
+	t_list *tmp;
+
+	while (lst)
+	{
+		tmp = lst;
+		free(tmp);
+		lst = lst->next;
+	}
 }
