@@ -6,16 +6,16 @@
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/select.h>
+
 int max_socket;
 int client_ids[5000];
 char *client_buff[5000];
-char *msg = 0;
 
 fd_set active, read_set, write_set;
 
 char buff_read[1001];
 char buff_send[1001];
+char *msg = 0;
 
 int extract_message(char **buf, char **msg)
 {
@@ -64,14 +64,14 @@ char *str_join(char *buf, char *add)
 	return (newbuf);
 }
 
-void ft_error(char *str)
+void	ft_error(char *str)
 {
-	write(2, str, strlen(str));
+	wrtie(2, str, strlen(str));
 	write(2, "\n", 1);
 	exit(1);
 }
 
-void send_msg(int fd)
+void	send_msg(int fd)
 {
 	for (int sockid = 3; sockid <= max_socket; ++sockid)
 	{
@@ -83,7 +83,6 @@ void send_msg(int fd)
 		}
 	}
 }
-
 
 int main(int argc, char **argv)
 {
@@ -113,20 +112,20 @@ int main(int argc, char **argv)
 	FD_ZERO(&active);
 	FD_SET(sockfd, &active);
 	int client_id = 0;
-	while (1)
+	while(1)
 	{
 		read_set = write_set = active;
 		if (select(max_socket + 1, &read_set, &write_set, 0, 0) <= 0)
 			continue;
 		if (FD_ISSET(sockfd, &read_set))
 		{
-			connfd = accept(sockfd, (struct sockaddr *) &cli, &len);
+			connfd = accept(sockfd, (struct sockaddr *)&cli, &len);
 			if (connfd < 0)
 				ft_error("Fatal error");
 			client_ids[connfd] = client_id++;
 			FD_SET(connfd, &active);
 			max_socket = connfd > max_socket ? connfd : max_socket;
-			sprintf(buff_send, "server: client %d just arrived\n", client_ids[connfd]);
+			sprintf(buff_send, "server: client %d is arrived\n", client_ids[connfd]);
 			send_msg(connfd);
 			client_buff[connfd] = 0;
 			continue;
@@ -135,38 +134,31 @@ int main(int argc, char **argv)
 		{
 			if (FD_ISSET(sockid, &read_set) && sockid != sockfd)
 			{
-				int read = recv(sockid, buff_read, 1000, 0);
-				if (read <= 0)
-				{
-					FD_CLR(sockid, &active);
-					sprintf(buff_read, "server: client %d just left\n", client_ids[sockid]);
-					send_msg(sockid);
-					close(sockid);
-					if (client_buff[sockid] != 0)
-						free(client_buff[sockid]);
-				}
-				else
+				int read = recv(sockid, buff_read, strlen(buff_read), 0);
+				if (read > 0)
 				{
 					buff_read[read] = 0;
 					client_buff[sockid] = str_join(client_buff[sockid], buff_read);
 					msg = 0;
-					while(extract_message(&client_buff[sockid], &msg))
+					while (extract_message(&client_buff[sockid], &msg))
 					{
-						sprintf(buff_send, "client %d: ", client_ids[sockid]);
+						sprintf(buff_send, "client %d ", client_ids[sockid]);
 						send_msg(sockid);
 						free(msg);
 						msg = 0;
 					}
 				}
+				else
+				{
+					FD_CRL(sockid, &active);
+					sprintf(buff_send, "server: client %d just left\n", client_ids[sockid]);
+					send_msg(sockid);
+					close(sockid);
+					if (client_buff[sockid] != 0)
+						free(client_buff[sockid]);
+				}
 			}
 		}
 	}
 	return 0;
-	// connfd = accept(sockfd, (struct sockaddr *)&cli, &len);
-	// if (connfd < 0) { 
-	// 	printf("server acccept failed...\n"); 
-	// 	exit(0); 
-	// } 
-	// else
-	// 	printf("server acccept the client...\n");
 }
