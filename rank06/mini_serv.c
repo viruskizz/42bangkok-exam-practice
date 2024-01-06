@@ -66,7 +66,7 @@ char *str_join(char *buf, char *add)
 
 void	ft_error(char *str)
 {
-	wrtie(2, str, strlen(str));
+	write(2, str, strlen(str));
 	write(2, "\n", 1);
 	exit(1);
 }
@@ -88,7 +88,8 @@ int main(int argc, char **argv)
 {
 	if (argc != 2)
 		ft_error("Wrong number of arguments");
-	int sockfd, connfd, len;
+	int sockfd, connfd;
+	unsigned int len;	// to support accept()
 	struct sockaddr_in servaddr, cli; 
 
 	// socket create and verification 
@@ -122,19 +123,19 @@ int main(int argc, char **argv)
 			connfd = accept(sockfd, (struct sockaddr *)&cli, &len);
 			if (connfd < 0)
 				ft_error("Fatal error");
-			client_ids[connfd] = client_id++;
 			FD_SET(connfd, &active);
-			max_socket = connfd > max_socket ? connfd : max_socket;
-			sprintf(buff_send, "server: client %d is arrived\n", client_ids[connfd]);
-			send_msg(connfd);
+			client_ids[connfd] = client_id++;
 			client_buff[connfd] = 0;
+			max_socket = connfd > max_socket ? connfd : max_socket;
+			sprintf(buff_send, "server: client %d just arrived\n", client_ids[connfd]);
+			send_msg(connfd);
 			continue;
 		}
 		for (int sockid = 3; sockid <= max_socket; ++sockid)
 		{
 			if (FD_ISSET(sockid, &read_set) && sockid != sockfd)
 			{
-				int read = recv(sockid, buff_read, strlen(buff_read), 0);
+				int read = recv(sockid, buff_read, 1000, 0);
 				if (read > 0)
 				{
 					buff_read[read] = 0;
@@ -142,7 +143,7 @@ int main(int argc, char **argv)
 					msg = 0;
 					while (extract_message(&client_buff[sockid], &msg))
 					{
-						sprintf(buff_send, "client %d ", client_ids[sockid]);
+						sprintf(buff_send, "client %d: ", client_ids[sockid]);
 						send_msg(sockid);
 						free(msg);
 						msg = 0;
@@ -150,7 +151,7 @@ int main(int argc, char **argv)
 				}
 				else
 				{
-					FD_CRL(sockid, &active);
+					FD_CLR(sockid, &active);
 					sprintf(buff_send, "server: client %d just left\n", client_ids[sockid]);
 					send_msg(sockid);
 					close(sockid);
